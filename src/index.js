@@ -4,9 +4,14 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
+const user = {
+  firstName: "Test User",
+  lastName: "1"
+};
+
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <App id={12345} user={user} org={"Facebook"} />
   </React.StrictMode>,
   document.getElementById('root')
 );
