@@ -42,3 +42,12 @@ input {
   margin-bottom: 20px;
   font-weight: bold;
 }
+
+.pin {
+  display: flex;
+  justify-content: space-evenly;
+}
+
+.slots {
+  text-align: left;
+}

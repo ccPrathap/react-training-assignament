@@ -1,16 +1,17 @@
 import React, { Component } from 'react';
 
+const COWIN_API_URL = "https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/findByPin";
+
 export default class Home extends Component {
   constructor(props) {
     super(props);
 
-    // State decalration
     this.state = {
       pincode: "",
-      date: ""
+      slots: [],
+      date: "",
+      vaccineType: "COVISHIELD"
     };
-
-    this.handleChange = this.handleChange.bind(this);
   }
 
   // componentWillMount() {
@@ -19,46 +20,92 @@ export default class Home extends Component {
 
   componentDidMount() {
     console.log("3. Mount - componentDidMount");
-    setTimeout(() => alert("componentDidMount - Welcome to the React session!"), 5000);
+    // setTimeout(() => alert("componentDidMount - Welcome to the React session!"), 5000);
+  }
+
+
+  // shouldComponentUpdate(nextProps, nextState) {
+  //   console.log("4. UPDATE - shouldComponentUpdate");
+  //   return true;
+  // }
+
+  // componentWillUpdate(nextProps, nextState) {
+  //   console.log("5. UPDATE - componentWillUpdate");
+  // }
+
+  // componentWillReceiveProps(nextProps) {
+  //   console.log("15. UPDATE - componentWillReceiveProps");
+  //   if (nextProps.stateName !== this.props.stateName) {
+  //     fetch("http://....{this.state.stateName}").then(res => {
+  //       this.setState({ districts: res.districts });
+  //     });
+  //   }
+  // }
+
+  componentDidUpdate(prevProps, prevState) {
+    console.log("6. UPDATE - componentDidUpdate");
   }
 
   componentWillUnmount() {
     console.log("UnMount - componentWillUnmount");
   }
 
-  handleChange (e) {
-    const { name, value } = e.target;
-
+  handleChange = (name, value) => {
     if (name === "pincode" && value.length > 6) {
       return;
     }
     this.setState({ [name]: value });
-  }
+  };
 
   login = () => {
-    // const { pincode, date } = this.state;
-    // console.log("Find slot clicked", { pincode, date });
+    const { pincode, date, vaccineType } = this.state;
+    fetch(`${COWIN_API_URL}?pincode=${pincode}&date=24-09-2021`)
+      .then(res => res.json())
+      .then(data => {
+        const allSlots = data.sessions || [];
+        // Write logic to filter out the data as per user requirement
+        this.setState({ slots: allSlots.filter(item => item.vaccine === vaccineType) });
+      });
   };
 
   render() {
     const { age } = this.props;
-    const { pincode, date } = this.state;
+    const { pincode, date, vaccineType, slots } = this.state;
     console.log("2. Mount - render");
 
-    return <form>
-      <h2>Find Vaccine slots for {age}</h2>
-      <input
-        name="pincode"
-        type="number"
-        value={pincode}
-        placeholder="Enter Pincode"
-        onChange={this.handleChange}
-      />
-      <div></div>
-      <input name="date" type="date" onChange={this.handleChange} />
-      <div></div>
-      <h3>Pincode: {pincode}, Date: {date}</h3>
-      <input type="button" value="Find slots >" onClick={this.login} />
-    </form>;
+    return <div>
+      <div>
+        <h2>Find Vaccine slots for {age}</h2>
+        <div className="pin">
+          <div>
+            <input
+              type="number"
+              value={pincode}
+              placeholder="Enter Pincode"
+              onChange={e => this.handleChange("pincode", e.target.value)}
+            />
+          </div>
+          <div>
+            <input type="date" onChange={e => this.handleChange("date", e.target.value)} />
+          </div>
+        </div>
+        <select value={vaccineType} onChange={e => this.handleChange("vaccineType", e.target.value)}>
+          <option value="COVISHIELD">COVISHIELD</option>
+          <option value="COVAXIN">COVAXIN</option>
+          <option value="SPUTNIK V">SPUTNIK V</option>
+        </select>
+        <h3>{pincode && `Pincode: ${pincode}`}{date && `, Date: ${date}`}</h3>
+        {/* {pincode && <div>{pincode.length === 6 ? "Valid pincode..." : "Invalid pincode!!!"}</div>} */}
+        <input
+          type="button"
+          value="Find slots >"
+          onClick={this.login}
+          disabled={!(pincode && date)}
+        />
+      </div>
+      <ol className="slots">
+        {slots.map(i => <li>At <b>{i.name}</b> the vaccine <b>{i.vaccine}</b> availability is: {i.available_capacity_dose1}</li>)}
+      </ol>
+    </div>;
   };
 }
