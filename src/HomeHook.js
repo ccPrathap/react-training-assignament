@@ -1,13 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
+import { DateTime } from 'luxon';
+import DisplaySlots from './DisplaySlots';
+import GlobalContext from './GlobalContext';
 
 const COWIN_API_URL = "https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/findByPin";
 
 function HomeHook(props) {
   const { age } = props;
+  const { vaccineType } = useContext(GlobalContext);
   const [date, setDate] = useState("");
   const [slots, setSlots] = useState([]);
   const [pincode, setPincode] = useState("");
-  const [vaccineType, setVaccineType] = useState("COVISHIELD");
+  // const [vaccineType, setVaccineType] = useState("COVISHIELD");
 
   console.log("1. RENDER");
 
@@ -36,12 +40,15 @@ function HomeHook(props) {
   };
 
   const login = () => {
-    fetch(`${COWIN_API_URL}?pincode=${pincode}&date=30-09-2021`)
+    fetch(`${COWIN_API_URL}?pincode=${pincode}&date=${DateTime.fromSQL(date).toFormat("dd-MM-yyyy")}`)
       .then(res => res.json())
       .then(data => {
         const allSlots = data.sessions || [];
         // Write logic to filter out the data as per user requirement
-        const filteredSlot = allSlots.filter(item => item.vaccine === vaccineType);
+        const filteredSlot = allSlots.filter(
+          item => item.vaccine === vaccineType &&
+            item.available_capacity_dose1 > 0
+        );
         setSlots(filteredSlot);
       });
   };
@@ -59,14 +66,18 @@ function HomeHook(props) {
           />
         </div>
         <div>
-          <input type="date" onChange={e => setDate(e.target.value)} />
+          <input
+            type="date"
+            min={DateTime.now().toISODate()}
+            onChange={e => setDate(e.target.value)}
+          />
         </div>
       </div>
-      <select value={vaccineType} onChange={e => setVaccineType(e.target.value)}>
+      {/* <select value={vaccineType} onChange={e => setVaccineType(e.target.value)}>
         <option value="COVISHIELD">COVISHIELD</option>
         <option value="COVAXIN">COVAXIN</option>
         <option value="SPUTNIK V">SPUTNIK V</option>
-      </select>
+      </select> */}
       <div style={{ marginBottom: "20px" }} />
       <input
         type="button"
@@ -75,9 +86,7 @@ function HomeHook(props) {
         disabled={!(pincode && date)}
       />
     </div>
-    <ol className="slots">
-      {slots.map(i => <li key={i.session_id}>At <b>{i.name}</b> the vaccine <b>{i.vaccine}</b> availability is: {i.available_capacity_dose1}</li>)}
-    </ol>
+    <DisplaySlots slots={slots} />
   </>;
 }
 

@@ -1,8 +1,11 @@
 import React, { Component } from 'react';
+import GlobalContext from './GlobalContext';
 
 const COWIN_API_URL = "https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/findByPin";
 
 export default class Home extends Component {
+  static contextType = GlobalContext;
+
   constructor(props) {
     super(props);
 
@@ -20,6 +23,8 @@ export default class Home extends Component {
 
   componentDidMount() {
     console.log("3. Mount - componentDidMount");
+    const { vaccineType } = this.context;
+    this.setState({ vaccineType });
     // setTimeout(() => alert("componentDidMount - Welcome to the React session!"), 5000);
   }
 
@@ -54,6 +59,13 @@ export default class Home extends Component {
     if (name === "pincode" && value.length > 6) {
       return;
     }
+
+    if (name === "vaccineType") {
+      const { vaccineType, setVaccineType } = this.context;
+      console.log(`Vaccine type: ${vaccineType} -> ${value}`);
+      setVaccineType(value);
+    }
+
     this.setState({ [name]: value });
   };
 

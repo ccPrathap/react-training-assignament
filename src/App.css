@@ -37,6 +37,10 @@
   }
 }
 
+a {
+  color: white;
+}
+
 input {
   height: 30px;
   margin-bottom: 20px;
